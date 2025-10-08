@@ -44,6 +44,27 @@ from tqdm.asyncio import tqdm_asyncio
 # ============================================================================
 
 VERSION = "1.0.0"
+TOOL_NAME = "IP Finder"
+
+def print_banner():
+    """Print the tool banner with ASCII art."""
+    # ANSI color codes
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    RESET = '\033[0m'
+
+    banner = f"""{RED}
+   ██████╗ ██████╗  ██████╗ ██╗    ██╗
+  ██╔════╝ ██╔══██╗██╔═══██╗██║    ██║
+  ███████╗ ██████╔╝██║   ██║██║ █╗ ██║
+  ╚════██║ ██╔══██╗██║   ██║██║███╗██║
+  ███████║ ██████╔╝╚██████╔╝╚███╔███╔╝
+  ╚══════╝ ╚═════╝  ╚═════╝  ╚══╝╚══╝{RESET}
+"""
+    print(banner)
+    print(f"\t\t\t{GREEN}Sbow-IPTracer v{VERSION}{RESET}")
+    print(f"\t\t\t{GREEN}Developed by Sidharth Bahuguna{RESET}")
+    print()
 USER_AGENT = f"IPFinder/{VERSION} (Defensive Security Research Tool)"
 CACHE_DIR = Path(".cache")
 LOG_FILE = "ip_finder.log"
@@ -1347,6 +1368,7 @@ async def main_async(args: argparse.Namespace) -> int:
 
 def main() -> int:
     """Main entry point."""
+    print_banner()
     args = parse_args()
 
     try:
