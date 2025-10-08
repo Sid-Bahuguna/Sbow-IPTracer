@@ -184,6 +184,91 @@ def is_private_ip(ip_str: str) -> bool:
     except ValueError:
         return True
 
+def is_cdn_ip(ip_str: str) -> Tuple[bool, Optional[str]]:
+    """
+    Check if IP belongs to known CDN networks.
+    Returns (is_cdn, cdn_name) tuple.
+    """
+    try:
+        ip = ip_address(ip_str)
+
+        # Cloudflare IP ranges (IPv4 and IPv6)
+        cloudflare_ranges = [
+            # IPv4
+            "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22",
+            "103.31.4.0/22", "141.101.64.0/18", "108.162.192.0/18",
+            "190.93.240.0/20", "188.114.96.0/20", "197.234.240.0/22",
+            "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
+            "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+            # IPv6
+            "2400:cb00::/32", "2606:4700::/32", "2803:f800::/32",
+            "2405:b500::/32", "2405:8100::/32", "2a06:98c0::/29", "2c0f:f248::/32"
+        ]
+
+        # Cloudflare check
+        for range_str in cloudflare_ranges:
+            if ip in ip_network(range_str):
+                return True, "Cloudflare"
+
+        # Akamai IP ranges (common ones)
+        akamai_ranges = [
+            "23.0.0.0/12", "23.32.0.0/11", "23.64.0.0/14", "23.72.0.0/13",
+            "104.64.0.0/10", "184.24.0.0/13", "184.50.0.0/15", "2.16.0.0/13"
+        ]
+        for range_str in akamai_ranges:
+            if ip in ip_network(range_str):
+                return True, "Akamai"
+
+        # Fastly IP ranges
+        fastly_ranges = [
+            "23.235.32.0/20", "43.249.72.0/22", "103.244.50.0/24",
+            "103.245.222.0/23", "103.245.224.0/24", "104.156.80.0/20",
+            "151.101.0.0/16", "157.52.64.0/18", "167.82.0.0/17",
+            "172.111.64.0/18", "185.31.16.0/22", "199.27.72.0/21",
+            "199.232.0.0/16"
+        ]
+        for range_str in fastly_ranges:
+            if ip in ip_network(range_str):
+                return True, "Fastly"
+
+        # Amazon CloudFront (sample ranges)
+        cloudfront_ranges = [
+            "13.32.0.0/15", "13.35.0.0/16", "13.224.0.0/14",
+            "13.249.0.0/16", "18.64.0.0/14", "52.46.0.0/18",
+            "52.84.0.0/15", "52.222.128.0/17", "54.182.0.0/16",
+            "54.192.0.0/16", "54.230.0.0/16", "54.239.128.0/18",
+            "99.84.0.0/16", "130.176.0.0/16", "204.246.164.0/22",
+            "204.246.168.0/22", "205.251.192.0/19", "143.204.0.0/16"
+        ]
+        for range_str in cloudfront_ranges:
+            if ip in ip_network(range_str):
+                return True, "CloudFront"
+
+        # Google Cloud CDN (sample ranges)
+        google_cdn_ranges = [
+            "34.64.0.0/10", "34.128.0.0/10", "35.190.0.0/16",
+            "35.191.0.0/16", "35.201.0.0/16", "35.220.0.0/16",
+            "130.211.0.0/22"
+        ]
+        for range_str in google_cdn_ranges:
+            if ip in ip_network(range_str):
+                return True, "Google Cloud CDN"
+
+        # Microsoft Azure CDN (sample ranges)
+        azure_cdn_ranges = [
+            "13.64.0.0/11", "13.104.0.0/14", "20.33.0.0/16",
+            "20.34.0.0/15", "20.36.0.0/14", "20.40.0.0/13",
+            "20.48.0.0/12", "20.135.0.0/16", "20.150.0.0/15"
+        ]
+        for range_str in azure_cdn_ranges:
+            if ip in ip_network(range_str):
+                return True, "Azure CDN"
+
+        return False, None
+
+    except ValueError:
+        return False, None
+
 # ============================================================================
 # HTTP Client with Rate Limiting & Retries
 # ============================================================================
@@ -285,6 +370,8 @@ class IPResult:
         self.ptr: Optional[str] = None
         self.ports: List[int] = []
         self.notes: str = ""
+        self.is_cdn: bool = False
+        self.cdn_name: Optional[str] = None
 
     def merge(self, other: 'IPResult') -> None:
         """Merge another IPResult into this one."""
@@ -301,6 +388,9 @@ class IPResult:
             self.ports.extend(other.ports)
         if other.notes:
             self.notes = self.notes + "; " + other.notes if self.notes else other.notes
+        if other.is_cdn:
+            self.is_cdn = True
+            self.cdn_name = other.cdn_name
 
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization."""
@@ -313,7 +403,9 @@ class IPResult:
             "country": self.country,
             "ptr": self.ptr,
             "ports": sorted(list(set(self.ports))) if self.ports else [],
-            "notes": self.notes
+            "notes": self.notes,
+            "is_cdn": self.is_cdn,
+            "cdn_name": self.cdn_name
         }
 
 # ============================================================================
@@ -952,9 +1044,15 @@ class IPFinder:
 
     async def _enrich_single_ip(self, ip: str, ptr_collector: PTRCollector,
                                 asn_collector: ASNCollector) -> None:
-        """Enrich single IP with PTR and ASN."""
+        """Enrich single IP with PTR, ASN, and CDN detection."""
         try:
             result = self.results[ip]
+
+            # CDN detection
+            is_cdn, cdn_name = is_cdn_ip(ip)
+            if is_cdn:
+                result.is_cdn = True
+                result.cdn_name = cdn_name
 
             # PTR lookup
             if not result.ptr:
@@ -987,11 +1085,13 @@ def export_csv(results: Dict[str, IPResult], output_path: str) -> None:
     """Export results to CSV file."""
     with open(output_path, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['IP', 'Sources', 'First Seen', 'ASN', 'Netblock', 'Country', 'PTR', 'Ports', 'Notes'])
+        writer.writerow(['IP', 'Is CDN', 'CDN Provider', 'Sources', 'First Seen', 'ASN', 'Netblock', 'Country', 'PTR', 'Ports', 'Notes'])
 
         for result in results.values():
             writer.writerow([
                 result.ip,
+                'Yes' if result.is_cdn else 'No',
+                result.cdn_name or '',
                 ';'.join(sorted(result.sources)),
                 result.first_seen,
                 result.asn or '',
@@ -1014,22 +1114,69 @@ def print_results_table(results: Dict[str, IPResult]) -> None:
         print("\n[!] No IP addresses discovered")
         return
 
+    # Separate CDN and non-CDN IPs
+    cdn_ips = {ip: result for ip, result in results.items() if result.is_cdn}
+    direct_ips = {ip: result for ip, result in results.items() if not result.is_cdn}
+
+    # Print Direct IPs (non-CDN)
+    if direct_ips:
+        print(f"\n{'='*100}")
+        print(f"DIRECT IP ADDRESSES (Non-CDN)")
+        print(f"{'='*100}")
+        print(f"{'IP ADDRESS':<40} {'SOURCES':<30} {'ASN':<15} {'COUNTRY':<10}")
+        print(f"{'='*100}")
+
+        for ip, result in sorted(direct_ips.items()):
+            sources_str = ', '.join(sorted(result.sources)[:3])  # Show first 3 sources
+            if len(result.sources) > 3:
+                sources_str += f" +{len(result.sources)-3} more"
+
+            asn_str = result.asn or 'N/A'
+            country_str = result.country or 'N/A'
+
+            print(f"{ip:<40} {sources_str:<30} {asn_str:<15} {country_str:<10}")
+
+        print(f"{'='*100}")
+        print(f"Total Direct IPs: {len(direct_ips)}")
+
+    # Print CDN IPs separately
+    if cdn_ips:
+        print(f"\n{'='*100}")
+        print(f"CDN/CLOUD IP ADDRESSES (Cloudflare, Akamai, etc.)")
+        print(f"{'='*100}")
+        print(f"{'IP ADDRESS':<40} {'CDN PROVIDER':<20} {'SOURCES':<25} {'COUNTRY':<10}")
+        print(f"{'='*100}")
+
+        for ip, result in sorted(cdn_ips.items()):
+            sources_str = ', '.join(sorted(result.sources)[:2])  # Show first 2 sources
+            if len(result.sources) > 2:
+                sources_str += f" +{len(result.sources)-2}"
+
+            cdn_str = result.cdn_name or 'CDN'
+            country_str = result.country or 'N/A'
+
+            print(f"{ip:<40} {cdn_str:<20} {sources_str:<25} {country_str:<10}")
+
+        print(f"{'='*100}")
+        print(f"Total CDN IPs: {len(cdn_ips)}")
+
+        # CDN provider breakdown
+        cdn_counts = {}
+        for result in cdn_ips.values():
+            cdn_name = result.cdn_name or 'Unknown CDN'
+            cdn_counts[cdn_name] = cdn_counts.get(cdn_name, 0) + 1
+
+        print(f"\nCDN IPs by provider:")
+        for cdn, count in sorted(cdn_counts.items(), key=lambda x: x[1], reverse=True):
+            print(f"  {cdn:<20} {count} IPs")
+
+    # Overall summary
     print(f"\n{'='*100}")
-    print(f"{'IP ADDRESS':<40} {'SOURCES':<30} {'ASN':<15} {'COUNTRY':<10}")
+    print(f"SUMMARY")
     print(f"{'='*100}")
-
-    for ip, result in sorted(results.items()):
-        sources_str = ', '.join(sorted(result.sources)[:3])  # Show first 3 sources
-        if len(result.sources) > 3:
-            sources_str += f" +{len(result.sources)-3} more"
-
-        asn_str = result.asn or 'N/A'
-        country_str = result.country or 'N/A'
-
-        print(f"{ip:<40} {sources_str:<30} {asn_str:<15} {country_str:<10}")
-
-    print(f"{'='*100}")
-    print(f"\nTotal IPs discovered: {len(results)}")
+    print(f"Total IPs discovered: {len(results)}")
+    print(f"  - Direct IPs (non-CDN): {len(direct_ips)}")
+    print(f"  - CDN IPs: {len(cdn_ips)}")
 
     # Source breakdown
     source_counts = {}
@@ -1037,7 +1184,7 @@ def print_results_table(results: Dict[str, IPResult]) -> None:
         for source in result.sources:
             source_counts[source] = source_counts.get(source, 0) + 1
 
-    print(f"\nIPs by source:")
+    print(f"\nIPs by discovery source:")
     for source, count in sorted(source_counts.items(), key=lambda x: x[1], reverse=True):
         print(f"  {source:<20} {count} IPs")
     print()
