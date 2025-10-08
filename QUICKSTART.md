@@ -2,6 +2,8 @@
 
 ## 🚀 Get Started in 3 Steps
 
+### Note: Make sure to create a Virtual Environment to install dependencies if using a linux host : Please Refer to the Virtual_Environments.txt file
+
 ### Step 1: Install Dependencies
 
 ```bash

@@ -1,0 +1,21 @@
+1: Create a Virtual Environment 
+python -m venv myenv
+
+2: Activate the Venv
+source myenv/bin/activate  :mac & Linux
+myenv\Scripts\activate     : Windows
+
+3: Install the Dependencies 
+pip install package_name
+
+4: Deactivate the Venv
+deactivate
+
+5: Delete a Virtual Environment
+rm -rf myenv  # macOS/Linux
+rmdir /s /q myenv  # Windows
+
+ls -d ~/.virtualenvs/*  # For virtualenvwrapper (default location)
+ls -d ~/venvs/*         # Some users store venvs here
+ls -d ~/envs/*          # Alternative custom location
+ls -d */venv */env      # Check for venvs in subdirectories
