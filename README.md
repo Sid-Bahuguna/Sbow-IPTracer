@@ -24,16 +24,10 @@ A production-ready, comprehensive IP address discovery tool designed for authori
 - [Quick Start](#-quick-start)
 - [Configuration](#-configuration)
 - [Usage Examples](#-usage-examples)
-- [Command-Line Options](#-command-line-options)
 - [Data Sources](#-data-sources)
-- [API Key Setup](#-api-key-setup)
 - [Output Formats](#-output-formats)
 - [Performance Tuning](#-performance-tuning)
-- [Troubleshooting](#-troubleshooting)
-- [Advanced Usage](#-advanced-usage)
 - [Architecture](#-architecture)
-- [FAQ](#-faq)
-- [Contributing](#-contributing)
 - [Changelog](#-changelog)
 
 ---
@@ -248,22 +242,6 @@ python ip_finder.py --target-file targets.txt --output multi_scan.json
 python ip_finder.py --sources-only
 ```
 
-**Sample Output**:
-```
-=== Data Sources Status ===
-
-crt.sh               ✓ CONFIGURED         (Always available)
-DNS                  ✓ CONFIGURED         (Always available)
-Censys               ✗ NOT CONFIGURED     (CENSYS_API_ID, CENSYS_API_SECRET)
-Shodan               ✓ CONFIGURED         (SHODAN_API_KEY)
-ZoomEye              ✗ NOT CONFIGURED     (ZOOMEYE_API_KEY)
-VirusTotal           ✓ CONFIGURED         (VT_API_KEY)
-FOFA                 ✗ NOT CONFIGURED     (FOFA_EMAIL, FOFA_KEY)
-BinaryEdge           ✗ NOT CONFIGURED     (BINARYEDGE_API_KEY)
-SecurityTrails       ✗ NOT CONFIGURED     (SECURITYTRAILS_API_KEY)
-Team Cymru ASN       ✓ CONFIGURED         (Always available)
-```
-
 ---
 
 ## ⚙️ Configuration
@@ -301,37 +279,9 @@ FOFA_EMAIL=yourname@example.com
 FOFA_KEY=your-fofa-key
 BINARYEDGE_API_KEY=your-binaryedge-key
 SECURITYTRAILS_API_KEY=your-securitytrails-key
-```
 
-```
-
-Then run:
-```bash
+# Run script
 python ip_finder.py --target example.com
-```
-
-### Method 3: YAML Configuration File
-
-Create `config.yml`:
-
-```yaml
-# config.yml
-SHODAN_API_KEY: abc123xyz789
-CENSYS_API_ID: your-censys-id
-CENSYS_API_SECRET: your-censys-secret
-VT_API_KEY: your-virustotal-api-key
-ZOOMEYE_API_KEY: your-zoomeye-key
-FOFA_EMAIL: yourname@example.com
-FOFA_KEY: your-fofa-key
-BINARYEDGE_API_KEY: your-binaryedge-key
-SECURITYTRAILS_API_KEY: your-securitytrails-key
-```
-
-Run with config file:
-```bash
-python ip_finder.py --target example.com --apikey-config config.yml
-```
-
 ---
 
 ## 📚 Usage Examples
@@ -367,20 +317,6 @@ python ip_finder.py --target example.com --output ips.txt --format txt
 python ip_finder.py --target example.com --output /path/to/results.json
 ```
 
-### Source Filtering
-
-```bash
-# Use only Shodan and Censys
-python ip_finder.py --target example.com \
-  --limit-source shodan \
-  --limit-source censys
-
-# Use only free sources (no API keys needed)
-python ip_finder.py --target example.com \
-  --limit-source dns \
-  --limit-source crtsh
-```
-
 ### Bulk Scanning
 
 ```bash
@@ -390,15 +326,6 @@ python ip_finder.py \
   --output bulk_results.json \
   --max-concurrency 20 \
   --verbose
-```
-
-**subdomains.txt format** (one domain per line):
-```
-www.example.com
-api.example.com
-mail.example.com
-cdn.example.com
-dev.example.com
 ```
 
 ### Testing & Debugging
@@ -413,16 +340,6 @@ python ip_finder.py --target example.com --verbose
 # Check what will be scanned without running
 python ip_finder.py --sources-only
 ```
-
-### Organization-Based Discovery (Future Feature)
-
-```bash
-# Placeholder for WHOIS-based netblock discovery
-python ip_finder.py --target example.com --org "Example Inc"
-```
-
-**Note**: `--org` flag is accepted but not yet implemented in v1.0. Future versions will use organization names to query RDAP/WHOIS for netblock enumeration.
-
 ---
 
 ## 🌐 Data Sources
@@ -625,14 +542,10 @@ tail -f ip_finder.log
 
 ✅ **Features**:
 - 10 data source collectors (crt.sh, Censys, Shodan, VirusTotal, ZoomEye, FOFA, BinaryEdge, SecurityTrails, DNS, Team Cymru)
-- Async I/O with configurable concurrency
 - JSON and CSV export formats
-- PTR and ASN enrichment
 - File-based caching (24hr TTL)
-- Retry logic with exponential backoff
 - Comprehensive logging
 - Source filtering (`--limit-source`)
-- Dry run mode (`--dry-run`)
 - Configuration status check (`--sources-only`)
 
 🔧 **Configuration**:
@@ -640,42 +553,12 @@ tail -f ip_finder.log
 - `.env` file support
 - YAML config file support
 
-📝 **Documentation**:
-- Complete README with examples
-- Inline code documentation
-- Legal/ethical notice
-- API key acquisition guide
-
 ⚠️ **Known Limitations**:
 - BGP.he.net scraping not implemented (placeholder)
 - RDAP/WHOIS netblock enumeration not implemented
 - `--org` flag accepted but unused
 - GeoIP limited to country codes from APIs
 - No MaxMind GeoIP2 integration
-
----
-
-### Planned Features (Future Versions)
-
-**v1.1.0** (Planned):
-- [ ] RDAP/WHOIS netblock enumeration by organization
-- [ ] MaxMind GeoIP2 database support
-- [ ] HTML report output
-- [ ] Progress bar during collection
-- [ ] Resume interrupted scans
-
-**v1.2.0** (Planned):
-- [ ] BGP.he.net scraper implementation
-- [ ] AS-to-IP enumeration (small netblocks)
-- [ ] Cloud provider detection (AWS, GCP, Azure IP ranges)
-- [ ] Subdomain enumeration integration
-
-**v2.0.0** (Planned):
-- [ ] GUI web interface
-- [ ] Database backend (SQLite/PostgreSQL)
-- [ ] Multi-user support
-- [ ] Scheduled/recurring scans
-- [ ] Diff alerts (email/Slack)
 
 ---
 
@@ -687,19 +570,6 @@ Contributions welcome! This is a single-file educational/research tool.
 
 1. **Report bugs**: Open issue with reproduction steps
 2. **Suggest features**: Open issue with use case
-3. **Submit PRs**:
-   - Fork repo
-   - Create feature branch
-   - Add tests/examples
-   - Update documentation
-   - Submit PR
-
-**Contribution guidelines**:
-- Maintain single-file structure (where possible)
-- Add docstrings for new functions
-- Follow existing code style
-- Update README for new features
-- Test with multiple API sources
 
 ---
 
@@ -712,27 +582,6 @@ This tool is provided as-is for educational and authorized security research pur
 **NO WARRANTY**: The authors provide no warranty and assume no liability for damages resulting from use or misuse of this tool.
 
 **Third-party APIs**: Use of data sources (Shodan, Censys, etc.) is subject to their respective terms of service. Users must comply with all API provider terms.
-
----
-
-## 📚 Further Reading
-
-**Related Tools**:
-- [Amass](https://github.com/OWASP/Amass) - Subdomain enumeration
-- [Subfinder](https://github.com/projectdiscovery/subfinder) - Subdomain discovery
-- [Shodan CLI](https://cli.shodan.io/) - Shodan command-line interface
-- [Censys CLI](https://github.com/censys/censys-python) - Censys Python library
-
-**Learning Resources**:
-- [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/) - Reconnaissance techniques
-- [Bug Bounty Bootcamp](https://nostarch.com/bug-bounty-bootcamp) - Asset discovery methods
-- [Awesome Asset Discovery](https://github.com/redhuntlabs/Awesome-Asset-Discovery) - Curated resources
-
-**API Documentation**:
-- [Shodan API Docs](https://developer.shodan.io/)
-- [Censys Search API](https://search.censys.io/api)
-- [VirusTotal API v3](https://developers.virustotal.com/reference/overview)
-- [SecurityTrails API](https://docs.securitytrails.com/)
 
 ---
 
