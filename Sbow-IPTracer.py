@@ -79,7 +79,7 @@ API_CONFIGS = {
     "censys_search": "https://search.censys.io/api/v2/hosts/search",
     "shodan_host": "https://api.shodan.io/shodan/host/{ip}",
     "shodan_search": "https://api.shodan.io/shodan/host/search",
-    "zoomeye_search": "https://api.zoomeye.org/host/search",
+    "zoomeye_search": "https://api.zoomeye.org/v2/search",
     "virustotal_domain": "https://www.virustotal.com/api/v3/domains/{domain}",
     "virustotal_resolutions": "https://www.virustotal.com/api/v3/domains/{domain}/resolutions",
     "fofa_search": "https://fofa.info/api/v1/search/all",
@@ -99,16 +99,17 @@ def setup_logging(verbose: bool = False, quiet: bool = False) -> logging.Logger:
 
     # Create logger
     logger = logging.getLogger("ip_finder")
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
     logger.handlers.clear()
 
-    # File handler - always debug
-    fh = logging.FileHandler(LOG_FILE, mode='a', encoding='utf-8')
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    ))
-    logger.addHandler(fh)
+    # File handler - only in verbose/debug mode
+    if verbose:
+        fh = logging.FileHandler(LOG_FILE, mode='a', encoding='utf-8')
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        ))
+        logger.addHandler(fh)
 
     # Console handler - respects verbosity
     if not quiet:
@@ -366,6 +367,13 @@ class RateLimitedClient:
                 async with self.session.post(url, headers=headers, json=json_data, data=data, ssl=False) as response:
                     if response.status == 200:
                         return await response.json()
+                    elif response.status == 429:
+                        self.logger.warning(f"Rate limited on {url}, waiting...")
+                        await asyncio.sleep(5)
+                        return None
+                    elif response.status in [401, 403]:
+                        self.logger.warning(f"Auth failed for {url}: {response.status}")
+                        return None
                     else:
                         self.logger.debug(f"HTTP {response.status} for {url}")
                         return None
@@ -525,6 +533,8 @@ class CensysCollector(IPCollector):
             params = {"q": query, "per_page": 100}
 
             # Note: Censys uses Bearer token authentication
+            cache_key = f"censys:{target}"
+
             async with self.client.semaphore:
                 try:
                     async with self.client.session.get(
@@ -548,6 +558,8 @@ class CensysCollector(IPCollector):
                                     results.append(result)
                         elif response.status in [401, 403]:
                             self.logger.warning(f"Censys auth failed - check your Personal Access Token")
+                        else:
+                            self.logger.debug(f"Censys returned status {response.status}")
                 except Exception as e:
                     self.logger.debug(f"Censys request error: {e}")
 
@@ -607,22 +619,48 @@ class ZoomEyeCollector(IPCollector):
             return results
 
         try:
+            import base64
+
             api_key = self.config["ZOOMEYE_API_KEY"]
             url = API_CONFIGS["zoomeye_search"]
-            headers = {"API-KEY": api_key}
-            params = {"query": f"hostname:{target}", "page": 1}
+            headers = {
+                "API-KEY": api_key,
+                "Content-Type": "application/json"
+            }
+
+            # ZoomEye API v2 requires base64-encoded query in qbase64 parameter
+            query = f"hostname:{target}"
+            qbase64 = base64.b64encode(query.encode('utf-8')).decode('utf-8')
+
+            json_data = {
+                "qbase64": qbase64,
+                "page": 1,
+                "pagesize": 20
+            }
             cache_key = f"zoomeye:{target}"
 
-            data = await self.client.get(url, headers=headers, params=params, cache_key=cache_key)
+            # Check cache first
+            cached_data = get_cached(cache_key)
+            if cached_data is not None:
+                data = cached_data
+            else:
+                data = await self.client.post(url, headers=headers, json_data=json_data)
+                if data:
+                    set_cache(cache_key, data)
+
             if not data:
                 return results
 
-            matches = data.get("matches", [])
+            # Parse response - ZoomEye v2 returns data in 'data' field
+            matches = data.get("data", [])
             for match in matches:
                 ip = match.get("ip")
                 if ip and is_valid_ip(ip):
                     result = IPResult(ip, "zoomeye")
-                    result.ports = [match.get("portinfo", {}).get("port")] if match.get("portinfo", {}).get("port") else []
+                    # Parse port information
+                    portinfo = match.get("portinfo", {})
+                    if portinfo and portinfo.get("port"):
+                        result.ports = [portinfo.get("port")]
                     results.append(result)
 
         except Exception as e:
@@ -1271,7 +1309,7 @@ For detailed documentation, see README.md
     parser.add_argument('--apikey-config', type=str, help='Path to YAML config file with API keys')
     parser.add_argument('--max-concurrency', type=int, default=DEFAULT_CONCURRENCY,
                        help='Maximum concurrent requests')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output and enable debug logging to file')
     parser.add_argument('--quiet', '-q', action='store_true', help='Minimal output')
     parser.add_argument('--sources-only', action='store_true',
                        help='Show available sources and exit')
