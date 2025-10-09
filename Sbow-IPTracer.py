@@ -129,8 +129,7 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, str]:
     # Load from environment variables (preferred)
     env_keys = [
         "SHODAN_API_KEY",
-        "CENSYS_API_ID",
-        "CENSYS_API_SECRET",
+        "CENSYS_API_TOKEN",
         "VT_API_KEY",
         "ZOOMEYE_API_KEY",
         "FOFA_EMAIL",
@@ -507,7 +506,7 @@ class CensysCollector(IPCollector):
     """Censys search API collector."""
 
     def is_configured(self) -> bool:
-        return "CENSYS_API_ID" in self.config and "CENSYS_API_SECRET" in self.config
+        return "CENSYS_API_TOKEN" in self.config
 
     async def collect(self, target: str) -> List[IPResult]:
         results = []
@@ -515,23 +514,21 @@ class CensysCollector(IPCollector):
             return results
 
         try:
-            auth = aiohttp.BasicAuth(
-                self.config["CENSYS_API_ID"],
-                self.config["CENSYS_API_SECRET"]
-            )
-
+            api_token = self.config["CENSYS_API_TOKEN"]
             query = f"services.tls.certificates.leaf_data.subject.common_name: {target}"
             url = API_CONFIGS["censys_search"]
 
-            headers = {"Accept": "application/json"}
+            headers = {
+                "Accept": "application/json",
+                "Authorization": f"Bearer {api_token}"
+            }
             params = {"q": query, "per_page": 100}
 
-            # Note: Censys requires special handling - using post with auth
+            # Note: Censys uses Bearer token authentication
             async with self.client.semaphore:
                 try:
                     async with self.client.session.get(
                         url,
-                        auth=auth,
                         headers=headers,
                         params=params,
                         ssl=False
@@ -550,7 +547,7 @@ class CensysCollector(IPCollector):
                                     result.ports = [s.get("port") for s in services if s.get("port")]
                                     results.append(result)
                         elif response.status in [401, 403]:
-                            self.logger.warning(f"Censys auth failed")
+                            self.logger.warning(f"Censys auth failed - check your Personal Access Token")
                 except Exception as e:
                     self.logger.debug(f"Censys request error: {e}")
 
@@ -1217,7 +1214,7 @@ def print_sources_status(config: Dict[str, str]) -> None:
     sources = {
         "crt.sh": ("Always available", True),
         "DNS": ("Always available", True),
-        "Censys": ("CENSYS_API_ID, CENSYS_API_SECRET", "CENSYS_API_ID" in config),
+        "Censys": ("CENSYS_API_TOKEN", "CENSYS_API_TOKEN" in config),
         "Shodan": ("SHODAN_API_KEY", "SHODAN_API_KEY" in config),
         "ZoomEye": ("ZOOMEYE_API_KEY", "ZOOMEYE_API_KEY" in config),
         "VirusTotal": ("VT_API_KEY", "VT_API_KEY" in config),
@@ -1253,8 +1250,7 @@ Examples:
 
 Environment Variables:
   SHODAN_API_KEY              Shodan API key
-  CENSYS_API_ID               Censys API ID
-  CENSYS_API_SECRET           Censys API secret
+  CENSYS_API_TOKEN	      CENSYS Personal Access Token
   VT_API_KEY                  VirusTotal API key
   ZOOMEYE_API_KEY             ZoomEye API key
   FOFA_EMAIL                  FOFA account email

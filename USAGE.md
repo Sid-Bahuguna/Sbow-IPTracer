@@ -137,8 +137,7 @@ python ip_finder.py --target example.com
 cat > .env << EOF
 SHODAN_API_KEY=abc123
 VT_API_KEY=xyz789
-CENSYS_API_ID=myid
-CENSYS_API_SECRET=mysecret
+CENSYS_API_TOKEN=your-token
 EOF
 
 # Run tool (automatically loads .env)

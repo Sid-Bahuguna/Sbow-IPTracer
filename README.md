@@ -27,7 +27,6 @@ A production-ready, comprehensive IP address discovery tool designed for authori
 - [Data Sources](#-data-sources)
 - [Output Formats](#-output-formats)
 - [Performance Tuning](#-performance-tuning)
-- [Architecture](#-architecture)
 - [Changelog](#-changelog)
 
 ---
@@ -251,8 +250,7 @@ python ip_finder.py --sources-only
 ```bash
 # Export directly in terminal (temporary)
 export SHODAN_API_KEY="your_key_here"
-export CENSYS_API_ID="your_id_here"
-export CENSYS_API_SECRET="your_secret_here"
+export CENSYS_API_TOKEN="your-token-here"
 export VT_API_KEY="your_virustotal_key"
 export ZOOMEYE_API_KEY="your_zoomeye_key"
 export FOFA_EMAIL="your_email@example.com"
@@ -270,8 +268,7 @@ Create `.env` file in the same directory as `ip_finder.py`:
 ```bash
 # .env file
 SHODAN_API_KEY=abc123xyz789
-CENSYS_API_ID=your-censys-id
-CENSYS_API_SECRET=your-censys-secret
+CENSYS_API_TOKEN=your-token-here
 VT_API_KEY=your-virustotal-api-key
 ZOOMEYE_API_KEY=your-zoomeye-key
 FOFA_EMAIL=yourname@example.com
