@@ -263,7 +263,6 @@ export SECURITYTRAILS_API_KEY="your_securitytrails_key"
 # Run script
 python ip_finder.py --target example.com
 ```
-
 ### Method 2: .env File (Recommended for Persistence)
 
 Create `.env` file in the same directory as `ip_finder.py`:
@@ -282,6 +281,7 @@ SECURITYTRAILS_API_KEY=your-securitytrails-key
 
 # Run script
 python ip_finder.py --target example.com
+```
 ---
 
 ## 📚 Usage Examples
