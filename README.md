@@ -134,13 +134,9 @@ A production-ready, comprehensive IP address discovery tool designed for authori
 ### Step 1: Download the Tool
 
 ```bash
-# Create project directory
-mkdir RootIP
-cd RootIP
+# Clone the project directory or download the project zip file
 git clone https://github.com/Sidharth-bahuguna/RootIP
-
-# Download the script and requirements
-# (Copy RootIP-Finder.py and requirements.txt to this directory)
+cd RootIP
 ```
 
 ### Step 2: Create Virtual Environment (Recommended)
