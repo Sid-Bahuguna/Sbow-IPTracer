@@ -10,17 +10,17 @@ pip install -r requirements.txt
 
 ### 1. View Help
 ```bash
-python ip_finder.py --help
+python RootIP-Finder.py --help
 ```
 
 ### 2. Check Which Sources Are Configured
 ```bash
-python ip_finder.py --sources-only
+python RootIP-Finder.py --sources-only
 ```
 
 ### 3. Simple Scan (Display Results on Screen)
 ```bash
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 ```
 
 **Output**: Results displayed in a table on your terminal
@@ -28,13 +28,13 @@ python ip_finder.py --target example.com
 ### 4. Scan and Save to File
 ```bash
 # Save as JSON (full details)
-python ip_finder.py --target example.com --output results.json
+python RootIP-Finder.py --target example.com --output results.json
 
 # Save as CSV (spreadsheet)
-python ip_finder.py --target example.com --output results.csv --format csv
+python RootIP-Finder.py --target example.com --output results.csv --format csv
 
 # Save as TXT (IP list only)
-python ip_finder.py --target example.com --output ips.txt --format txt
+python RootIP-Finder.py --target example.com --output ips.txt --format txt
 ```
 
 ### 5. Scan Multiple Domains
@@ -44,7 +44,7 @@ echo "example.com" > targets.txt
 echo "example.org" >> targets.txt
 
 # Scan all targets
-python ip_finder.py --target-file targets.txt
+python RootIP-Finder.py --target-file targets.txt
 ```
 
 ### 6. Scan with API Keys
@@ -57,7 +57,7 @@ cp .env.example .env
 
 Then run:
 ```bash
-python ip_finder.py --target example.com --verbose
+python RootIP-Finder.py --target example.com --verbose
 ```
 
 ## Output Behavior
@@ -79,25 +79,25 @@ python ip_finder.py --target example.com --verbose
 
 ```bash
 # Just see results, don't save
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 
 # See results AND save to JSON
-python ip_finder.py --target example.com --output results.json
+python RootIP-Finder.py --target example.com --output results.json
 
 # See results AND save to CSV
-python ip_finder.py --target example.com --output results.csv --format csv
+python RootIP-Finder.py --target example.com --output results.csv --format csv
 
 # Quiet mode (only show results table, no progress messages)
-python ip_finder.py --target example.com --quiet
+python RootIP-Finder.py --target example.com --quiet
 
 # Verbose mode (show detailed logging)
-python ip_finder.py --target example.com --verbose
+python RootIP-Finder.py --target example.com --verbose
 
 # Limit to specific sources
-python ip_finder.py --target example.com --limit-source shodan --limit-source censys
+python RootIP-Finder.py --target example.com --limit-source shodan --limit-source censys
 
 # High-speed scanning
-python ip_finder.py --target example.com --max-concurrency 25
+python RootIP-Finder.py --target example.com --max-concurrency 25
 ```
 
 ## API Keys (Optional but Recommended)
@@ -128,7 +128,7 @@ For better results, get free API keys from:
 ```bash
 export SHODAN_API_KEY="abc123"
 export VT_API_KEY="xyz789"
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 ```
 
 ### Method 2: .env File (Recommended)
@@ -141,7 +141,7 @@ CENSYS_API_TOKEN=your-token
 EOF
 
 # Run tool (automatically loads .env)
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 ```
 
 ### Method 3: YAML Config File
@@ -153,7 +153,7 @@ VT_API_KEY: xyz789
 EOF
 
 # Run with config file
-python ip_finder.py --target example.com --apikey-config config.yml
+python RootIP-Finder.py --target example.com --apikey-config config.yml
 ```
 
 ## Integration with Other Tools
@@ -161,7 +161,7 @@ python ip_finder.py --target example.com --apikey-config config.yml
 ### Feed to Nmap
 ```bash
 # Scan and save IPs to text file
-python ip_finder.py --target example.com --output ips.txt --format txt
+python RootIP-Finder.py --target example.com --output ips.txt --format txt
 
 # Use with nmap
 sudo nmap -iL ips.txt -p- -oA scan_results
@@ -169,7 +169,7 @@ sudo nmap -iL ips.txt -p- -oA scan_results
 
 ### Use with Masscan
 ```bash
-python ip_finder.py --target example.com --output ips.txt --format txt
+python RootIP-Finder.py --target example.com --output ips.txt --format txt
 sudo masscan -iL ips.txt -p0-65535 --rate 10000
 ```
 
@@ -193,22 +193,22 @@ jq -r '.[] | select(.ports | length > 0) | .ip' results.json
 ### No Results Found
 ```bash
 # Check if sources are configured
-python ip_finder.py --sources-only
+python RootIP-Finder.py --sources-only
 
 # Try verbose mode to see what's happening
-python ip_finder.py --target example.com --verbose
+python RootIP-Finder.py --target example.com --verbose
 
 # Try with a known-good domain
-python ip_finder.py --target google.com
+python RootIP-Finder.py --target google.com
 ```
 
 ### Rate Limit Errors
 ```bash
 # Reduce concurrency
-python ip_finder.py --target example.com --max-concurrency 5
+python RootIP-Finder.py --target example.com --max-concurrency 5
 
 # Limit to fewer sources
-python ip_finder.py --target example.com --limit-source dns --limit-source crtsh
+python RootIP-Finder.py --target example.com --limit-source dns --limit-source crtsh
 ```
 
 ### API Authentication Errors
@@ -218,7 +218,7 @@ echo $SHODAN_API_KEY
 echo $VT_API_KEY
 
 # Check which sources are configured
-python ip_finder.py --sources-only
+python RootIP-Finder.py --sources-only
 
 # Check logs for details
 tail -f ip_finder.log
@@ -228,16 +228,16 @@ tail -f ip_finder.log
 
 ```bash
 # 1. Check configuration
-python ip_finder.py --sources-only
+python RootIP-Finder.py --sources-only
 
 # 2. Quick scan to see what's found
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 
 # 3. If results look good, save them
-python ip_finder.py --target example.com --output example_ips.json
+python RootIP-Finder.py --target example.com --output example_ips.json
 
 # 4. Also save as simple IP list for other tools
-python ip_finder.py --target example.com --output example_ips.txt --format txt
+python RootIP-Finder.py --target example.com --output example_ips.txt --format txt
 
 # 5. Use results with other tools
 sudo nmap -iL example_ips.txt -p- -A -oA nmap_scan
