@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-IP Finder - Advanced IP Discovery Tool for Security Research
+IP Discovery - Advanced IP Discovery Tool for Security Research
 
 LEGAL & ETHICAL NOTICE:
 This tool is designed for authorized security testing, defensive security research,
@@ -62,7 +62,7 @@ def print_banner():
   ╚══════╝ ╚═════╝  ╚═════╝  ╚══╝╚══╝{RESET}
 """
     print(banner)
-    print(f"\t\t\t{GREEN}Sbow-IPTracer v{VERSION}{RESET}")
+    print(f"\t\t\t{GREEN}R00tIP v{VERSION}{RESET}")
     print(f"\t\t\t{GREEN}Developed by Sidharth Bahuguna{RESET}")
     print()
 USER_AGENT = f"IPFinder/{VERSION} (Defensive Security Research Tool)"
