@@ -135,12 +135,12 @@ A production-ready, comprehensive IP address discovery tool designed for authori
 
 ```bash
 # Create project directory
-mkdir ip_finder_project
-cd ip_finder_project
-git clone https://github.com/Sidharth-bahuguna/IP-Finder
+mkdir RootIP
+cd RootIP
+git clone https://github.com/Sidharth-bahuguna/RootIP
 
 # Download the script and requirements
-# (Copy ip_finder.py and requirements.txt to this directory)
+# (Copy RootIP-Finder.py and requirements.txt to this directory)
 ```
 
 ### Step 2: Create Virtual Environment (Recommended)
@@ -168,13 +168,13 @@ pip install -r requirements.txt
 
 ```bash
 # Check version
-python ip_finder.py --version
+python RootIP-Finder.py --version
 
 # View help
-python ip_finder.py --help
+python RootIP-Finder.py --help
 
 # Check source configuration
-python ip_finder.py --sources-only
+python RootIP-Finder.py --sources-only
 ```
 
 ---
@@ -186,7 +186,7 @@ python ip_finder.py --sources-only
 Uses free sources: crt.sh and DNS resolution
 
 ```bash
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 ```
 
 **Output**: Results displayed in a table on screen, no file saved
@@ -199,20 +199,20 @@ export SHODAN_API_KEY="your_shodan_key_here"
 export VT_API_KEY="your_virustotal_key_here"
 
 # Run scan
-python ip_finder.py --target example.com --verbose
+python RootIP-Finder.py --target example.com --verbose
 ```
 
 ### Example 3: Save Results to File
 
 ```bash
 # JSON format (detailed metadata)
-python ip_finder.py --target example.com --output results.json
+python RootIP-Finder.py --target example.com --output results.json
 
 # CSV format (spreadsheet-compatible)
-python ip_finder.py --target example.com --output results.csv --format csv
+python RootIP-Finder.py --target example.com --output results.csv --format csv
 
 # TXT format (IP addresses only, one per line)
-python ip_finder.py --target example.com --output ips.txt --format txt
+python RootIP-Finder.py --target example.com --output ips.txt --format txt
 ```
 
 ### Example 4: Scan Multiple Domains
@@ -228,17 +228,17 @@ mail.example.com
 Run scan:
 ```bash
 # Display results on screen
-python ip_finder.py --target-file targets.txt
+python RootIP-Finder.py --target-file targets.txt
 
 # Or save to file
-python ip_finder.py --target-file targets.txt --output multi_scan.json
+python RootIP-Finder.py --target-file targets.txt --output multi_scan.json
 ```
 
 ### Example 5: Check Configuration
 
 ```bash
 # See which sources are configured
-python ip_finder.py --sources-only
+python RootIP-Finder.py --sources-only
 ```
 
 ---
@@ -259,11 +259,11 @@ export BINARYEDGE_API_KEY="your_binaryedge_key"
 export SECURITYTRAILS_API_KEY="your_securitytrails_key"
 
 # Run script
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 ```
 ### Method 2: .env File (Recommended for Persistence)
 
-Create `.env` file in the same directory as `ip_finder.py`:
+Create `.env` file in the same directory as `RootIP-Finder.py`:
 
 ```bash
 # .env file
@@ -277,7 +277,7 @@ BINARYEDGE_API_KEY=your-binaryedge-key
 SECURITYTRAILS_API_KEY=your-securitytrails-key
 
 # Run script
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 ```
 ---
 
@@ -287,38 +287,38 @@ python ip_finder.py --target example.com
 
 ```bash
 # Scan and display results on screen
-python ip_finder.py --target example.com
+python RootIP-Finder.py --target example.com
 
 # Scan with verbose logging
-python ip_finder.py --target example.com --verbose
+python RootIP-Finder.py --target example.com --verbose
 
 # Scan and save to file
-python ip_finder.py --target example.com --output results.json
+python RootIP-Finder.py --target example.com --output results.json
 
 # Quiet mode (show results table only, no progress messages)
-python ip_finder.py --target example.com --quiet
+python RootIP-Finder.py --target example.com --quiet
 ```
 
 ### Advanced Scanning
 
 ```bash
 # High-speed scan with increased concurrency
-python ip_finder.py --target example.com --max-concurrency 50
+python RootIP-Finder.py --target example.com --max-concurrency 50
 
 # Save results in different formats
-python ip_finder.py --target example.com --output results.json --format json
-python ip_finder.py --target example.com --output results.csv --format csv
-python ip_finder.py --target example.com --output ips.txt --format txt
+python RootIP-Finder.py --target example.com --output results.json --format json
+python RootIP-Finder.py --target example.com --output results.csv --format csv
+python RootIP-Finder.py --target example.com --output ips.txt --format txt
 
 # Scan with custom output location
-python ip_finder.py --target example.com --output /path/to/results.json
+python RootIP-Finder.py --target example.com --output /path/to/results.json
 ```
 
 ### Bulk Scanning
 
 ```bash
 # Scan from subdomain enumeration results
-python ip_finder.py \
+python RootIP-Finder.py \
   --target-file subdomains.txt \
   --output bulk_results.json \
   --max-concurrency 20 \
@@ -329,13 +329,13 @@ python ip_finder.py \
 
 ```bash
 # Dry run (mock data, no API calls)
-python ip_finder.py --target test.com --dry-run
+python RootIP-Finder.py --target test.com --dry-run
 
 # Verbose debugging with logging
-python ip_finder.py --target example.com --verbose
+python RootIP-Finder.py --target example.com --verbose
 
 # Check what will be scanned without running
-python ip_finder.py --sources-only
+python RootIP-Finder.py --sources-only
 ```
 ---
 
@@ -479,12 +479,12 @@ IP,Sources,First Seen,ASN,Netblock,Country,PTR,Ports,Notes
 
 **Low Rate Limits** (API errors):
 ```bash
-python ip_finder.py --target example.com --max-concurrency 5
+python RootIP-Finder.py --target example.com --max-concurrency 5
 ```
 
 **High-Speed Scanning** (stable network + generous API limits):
 ```bash
-python ip_finder.py --target example.com --max-concurrency 50
+python RootIP-Finder.py --target example.com --max-concurrency 50
 ```
 
 ### Caching
@@ -524,7 +524,7 @@ rm -rf .cache/
 **Monitor Progress**:
 ```bash
 # Run in background
-python ip_finder.py --target example.com &
+python RootIP-Finder.py --target example.com &
 
 # Tail log file
 tail -f ip_finder.log
