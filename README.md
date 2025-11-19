@@ -1,4 +1,4 @@
-# IP Finder - Advanced IP Discovery Tool for Security Research
+# RootIP - Advanced IP Discovery Tool for Security Research
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10+-green.svg)
